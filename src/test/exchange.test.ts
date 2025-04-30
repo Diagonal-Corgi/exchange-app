@@ -1,5 +1,5 @@
 import { getAverageRates } from '../exchange';
-import { clearCache } from '../cache';
+import { clearCache, getCachedRate } from '../cache';
 
 describe('Exchange rate tests', () => {
     test('fetches average rates for EUR to USD,NZD,GBP', async () => {
@@ -20,21 +20,28 @@ describe('Exchange rate tests', () => {
         expect(result.rates).toHaveProperty('GBP');
     });
 });
-
-describe('Exchange rate cache tests', () => {
+describe('Exchange rate caching with node-cache', () => {
     beforeEach(() => {
-      clearCache(); // Ensure cache is cleared before each test
+      clearCache(); // Ensure clean cache before each test
     });
   
-    test('uses cache for repeated request', async () => {
-      // First request (fetches data from APIs)
-      const firstResult = await getAverageRates('EUR', '2024-03-02', ['USD', 'NZD']);
-      console.log(firstResult)
+    test('returns cached result on repeated call', async () => {
+      const base = 'EUR';
+      const date = 'latest';
+      const symbols = ['USD', 'NZD'];
   
-      // Second request (should use cached data)
-      const secondResult = await getAverageRates('EUR', '2024-03-02', ['USD', 'NZD']);
-      expect(secondResult).toEqual(firstResult);  // Cached result should be equal to the first
-      console.log(secondResult)
+      // First call — should fetch from APIs and cache the result
+      const first = await getAverageRates(base, date, symbols);
   
+      // Second call — should return from cache
+      const second = await getAverageRates(base, date, symbols);
+
+      // Same object shape, values should match
+      expect(second).toEqual(first);
+  
+      // Optional: simulate a delay and re-check cache hasn't expired
+      await new Promise(resolve => setTimeout(resolve, 100)); // small delay
+      const third = await getAverageRates(base, date, symbols);
+      expect(third).toEqual(first);
     });
   });

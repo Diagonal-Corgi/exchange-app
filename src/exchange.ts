@@ -1,12 +1,10 @@
 import axios from 'axios';
+import { getCachedRate, setCachedRate } from './cache';
 import { recordApiCall } from './metrics';
 import { ExchangeResult } from './types';
-import { getCacheKey, getCachedRate, setCachedRate } from './cache';
 
 export async function getAverageRates(base: string, date: string, symbols: string[]): Promise<ExchangeResult> {
-
-  const cacheKey = getCacheKey(base, symbols);
-  const cached = getCachedRate(cacheKey);
+  const cached = getCachedRate(base, date, symbols);
   if (cached) return cached;
 
   const [fawazData, frankfurterData] = await Promise.all([
@@ -15,21 +13,19 @@ export async function getAverageRates(base: string, date: string, symbols: strin
   ]);
 
   const rates: Record<string, number> = {};
-  const sources = ['Free Currency Rates API', 'Frankfurter API'];
-
   for (const symbol of symbols) {
     const avg = (fawazData.rates[symbol] + frankfurterData.rates[symbol]) / 2;
     rates[symbol] = avg;
   }
 
   const result: ExchangeResult = {
-    datasource: sources.join(', '),
-    date: date.toLowerCase(),
-    base: base.toUpperCase(),
+    datasource: 'Free Currency Rates API, Frankfurter API',
+    base,
+    date,
     rates
   };
 
-  setCachedRate(cacheKey, result);
+  setCachedRate(base, date, symbols, result);
   return result;
 }
 
