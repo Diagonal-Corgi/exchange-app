@@ -9,10 +9,13 @@ This application fetches exchange rates from two public APIs and returns an aver
 - Expose exchange and metric endpoints
 
 ## Endpoints
-- `/exchangeRates/:base?symbols=USD,NZD`
+- `/exchangeRates/:base`
 - `/metrics`
 
 ## Setup
 ```bash
 npm install
 npm run dev
+
+## Run Tests
+npm run test
