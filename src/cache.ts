@@ -1,7 +1,18 @@
-import NodeCache from 'node-cache';
 
-export const cache = new NodeCache({ stdTTL: 300 });
+export const cache = new Map<string, any>();
 
-export function makeCacheKey(base: string, symbols: string[]): string {
-  return `${base}:${symbols.sort().join(',')}`;
+export function getCacheKey(base: string, symbols: string[]): string {
+  return `${base.toUpperCase()}:${symbols.map(s => s.toUpperCase()).sort().join(',')}`;
+}
+
+export function getCachedRate(key: string) {
+  return cache.get(key);
+}
+
+export function setCachedRate(key: string, value: any) {
+  cache.set(key, value);
+}
+
+export function clearCache() {
+  cache.clear();
 }
